@@ -1,0 +1,206 @@
+var keyLeft = false;
+var keyRight = false;
+var keyUp = false;
+var keyDown = false;
+
+var xFace;
+var yFace;
+var xVelFace;
+var yVelFace;
+var dotList = [] ;
+var xDotList =[] ;
+var yDotList =[];
+
+
+// Dot collision(deletion) and score, and ghost collision
+
+var score = 0;
+function dotCollision() {
+  for (var i = 0; i < 50; i++) {
+  var distance = Math.sqrt(Math.pow(xFace-xDotList[i], 2) + Math.pow(yFace-yDotList[i], 2));
+  if (distance<10) {
+    score = score + 100;
+    setPosition(dotList[i], 400, 500);
+    removeItem(dotList, i);
+    removeItem(xDotList, i);
+    removeItem(yDotList, i);
+    setText("scoreSpace", score);
+  }
+  if (score == 5000) {
+    stopTimedLoop();
+    stopTimedLoop(music);
+    stopSound("Intro.mp3");
+    setScreen("winScreen");
+    playSound("Extra.mp3");
+  }
+  }
+}
+
+// Crash into Ghost = game over screen 
+function redGhostCollision() {
+  var distance = Math.sqrt(Math.pow(xFace-xRedGhost, 2) + Math.pow(yFace-yRedGhost, 2));
+  if (distance<20) {
+  setScreen("endScreen");
+  stopTimedLoop();
+  stopTimedLoop(music);
+  stopSound("Intro.mp3");
+  playSound("Death.mp3");
+  }
+}
+function orangeGhostCollision() {
+  var distance = Math.sqrt(Math.pow(xFace-xOrangeGhost, 2) + Math.pow(yFace-yOrangeGhost, 2));
+  if (distance<20) {
+  setScreen("endScreen");
+  stopTimedLoop();
+  stopTimedLoop(music);
+  stopSound("Intro.mp3");
+  playSound("Death.mp3");
+  }
+}
+
+// Pacman additional bounds 
+var rightLowerX = [100,180,10,125,120,225,10,70,170,230,230];
+var rightUpperX = [120,200,30,150,140,245,30,90,190,250,250];
+var rightLowerY = [180,310,310,220,60,150,80,80,80,80,225];
+var rightUpperY = [240,360,360,350,120,210,115,115,115,115,270];
+
+var leftLowerX = [175,260,90,150,150,40,105,220,75,40,40];
+var leftUpperX = [195,280,110,170,170,60,125,240,95,60,60];
+var leftLowerY = [180,310,310,220,60,80,80,80,80,150,220];
+var leftUpperY = [240,360,360,350,120,115,115,115,115,200,270];
+
+var upLowerX = [100,190,20,180,130,1,230,10,70,170,240,130,230,1,1,230];
+var upUpperX = [190,280,110,190,160,60,300,60,120,220,280,160,300,65,65,300];
+var upLowerY = [220,340,340,340,110,160,160,100,100,100,100,345,200,185,250,260];
+var upUpperY = [240,360,360,360,130,180,180,120,120,120,120,365,220,205,270,280];
+
+var downLowerX = [100,190,20,125,0,230,10,70,170,240,230,1,1];
+var downUpperX = [190,280,110,165,60,300,60,120,220,280,300,65,65];
+var downLowerY = [175,310,310,210,140,140,60,60,60,60,210,140,205];
+var downUpperY = [200,330,330,230,160,160,80,80,80,80,230,160,225];
+
+//Velocity of Pacman
+function velocity(value,vel) {
+  if (keyLeft && value > 10) {
+    xVelFace = -vel;
+  } else if (keyRight && xFace < 276) {
+    xVelFace = vel;
+  } else if (keyUp && yFace > 75) {
+    yVelFace = -vel;
+  } else if (keyDown && yFace < 360) {
+    yVelFace = vel;
+  }
+ for (var i = 0; i < upUpperX.length; i++) {
+    if (((keyRight && xFace>rightLowerX[i]) && xFace<rightUpperX[i]) && yFace>rightLowerY[i] && yFace<rightUpperY[i]) {
+    xVelFace = 0;
+    } else if (((keyLeft && xFace>leftLowerX[i]) && xFace<leftUpperX[i]) && yFace>leftLowerY[i] && yFace<leftUpperY[i]) {
+    xVelFace = 0;
+    } else if (((keyUp && xFace>upLowerX[i]) && xFace<upUpperX[i]) && yFace>upLowerY[i] && yFace<upUpperY[i]) {
+    yVelFace = 0;  
+    } else if (((keyDown && xFace>downLowerX[i]) && xFace<downUpperX[i]) && yFace>downLowerY[i] && yFace<downUpperY[i]) {
+    yVelFace = 0;
+    }
+  }
+}
+
+
+//Start Game, Ghosts, and Collisions
+onEvent("spaceKey", "click", function( ) {
+  setScreen("playScreen");
+  for (var i = 0; i < 50; i++) {
+ dotList[i]="dot"+(i+1);
+ xDotList[i] =getXPosition(dotList[i]);
+ yDotList[i] =getYPosition(dotList[i]);
+}
+console.log(dotList);
+console.log(xDotList);
+  setPosition("pacman", 145, 160);
+  timedLoop(20, function() {
+    xRedGhost = getXPosition("redGhost");
+    yRedGhost = getYPosition("redGhost");
+    checkBoundariesRed();
+    setPosition("redGhost", 215, yRedGhost + yVelRedGhost);
+  });
+  timedLoop(20, function() {
+    xOrangeGhost = getXPosition("orangeGhost");
+    yOrangeGhost = getYPosition("orangeGhost");
+    checkBoundariesOrange();
+    setPosition("orangeGhost", 85, yOrangeGhost + yVelOrangeGhost);
+  });
+  timedLoop(20, function() {
+    xVelFace = 0;
+    yVelFace = 0;
+    xFace = getXPosition("pacman");
+    yFace = getYPosition("pacman");
+    velocity(xFace,5);
+    setPosition("pacman", xFace+xVelFace, yFace+yVelFace);
+    if (((keyRight && xFace>250) && xFace<280) && yFace>190 && yFace<240) {
+     setPosition("pacman", 5, 210);
+    } else if (((keyLeft && xFace>10) && xFace<30) && yFace>190 && yFace<240) {
+     setPosition("pacman",290, 210);
+    }
+    dotCollision();
+    redGhostCollision();
+    orangeGhostCollision();
+  });
+});
+
+
+//How pressing the keys work
+onEvent("playScreen", "keydown", function(event) {
+  if (event.key == "Left") {
+    keyLeft = true;
+  } else if (event.key == "Right") {
+    keyRight = true;
+  } else if (event.key == "Up") {
+    keyUp = true;
+  } else if (event.key == "Down") {
+    keyDown = true;
+  }
+});
+onEvent("playScreen", "keyup", function(event) {
+  if (event.key == "Left") {
+    keyLeft = false;
+  } else if (event.key == "Right") {
+    keyRight = false;
+  } else if (event.key == "Up") {
+    keyUp = false;
+  } else if (event.key == "Down") {
+    keyDown = false;
+  }
+});
+
+//Ghost Boundaries
+var yRedGhost;
+var xRedGhost;
+var yVelRedGhost = 2;
+setPosition("redGhost", 215, 125);
+function checkBoundariesRed() {
+  if (yRedGhost < 120) {
+    yVelRedGhost *= -1;
+  } else if ((yRedGhost >300)) {
+    yVelRedGhost *= -1;
+  }
+}
+var yOrangeGhost;
+var xOrangeGhost;
+var yVelOrangeGhost = 2;
+setPosition("orangeGhost", 85, 125);
+function checkBoundariesOrange() {
+  if (yOrangeGhost < 120) {
+    yVelOrangeGhost *= -1;
+  } else if ((yOrangeGhost >300)) {
+    yVelOrangeGhost *= -1;
+  }
+}
+
+
+//music loop
+playSound("Intro.mp3");
+var music = timedLoop(5000, function() {
+  playSound("Intro.mp3");
+  if (score == 5000) {
+    stopTimedLoop(music);
+    stopSound("Intro.mp3");
+  }
+});
