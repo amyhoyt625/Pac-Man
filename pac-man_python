@@ -1,0 +1,269 @@
+import pygame
+import math
+
+# Pac-Man mini
+# Similar to standard Pacman except non-constant movement since the user has to
+# hold down the arrow key to keep Pacman moving
+
+# Initialize pygame
+pygame.init()
+
+# Constants
+SCREEN_WIDTH = 400
+SCREEN_HEIGHT = 500
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+YELLOW = (255, 255, 0)
+BLUE = (0,0,255)
+RED = (255, 0, 0)
+ORANGE = (255, 165, 0)
+
+# Screen setup
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("Pac-Man mini")
+clock = pygame.time.Clock()
+
+# Initialize Pacman position and velocity
+x_face, y_face = 145, 160
+x_vel_face, y_vel_face = 0, 0
+
+# Initialize keys to False to show not moving in that direction (stationary at start)
+keyLeft = False
+keyRight = False
+keyUp = False
+keyDown = False
+
+# Initialize dots
+dot_radius = 5  # Radius of the dots
+
+dots = []
+# Loop through the columns to create a single row of dots
+for col in range(13):
+    x = 50 + col * 25  # Horizontal position, varies by column
+    dots.append((x, 75))  # Same y_position for all dots in this row
+for col in range(13):
+    x = 50 + col * 25  
+    dots.append((x, 150))
+
+for row in range(4):
+    y = 75 + row * 25  
+    dots.append((50, y))
+for row in range(12):
+    y = 75 + row * 25  
+    dots.append((125, y))
+for row in range(12):
+    y = 75 + row * 25  
+    dots.append((275, y))
+for row in range(4):
+    y = 75 + row * 25  
+    dots.append((350, y))
+
+for col in range(7):
+    x = 125 + col * 25  
+    dots.append((x, 200))
+
+for col in range(7):
+    x = 125 + col * 25  
+    dots.append((x, 300))
+
+          
+for col in range(13):
+    x = 50 + col * 25  
+    dots.append((x, 350))  
+for row in range(5):
+    y = 350 + row * 25  
+    dots.append((50, y)) 
+for row in range(3):
+    y = 350 + row * 25  
+    dots.append((100, y)) 
+for row in range(5):
+    y = 350 + row * 25  
+    dots.append((175, y)) 
+for row in range(5):
+    y = 350 + row * 25  
+    dots.append((350, y))
+for row in range(3):
+    y = 400 + row * 25  
+    dots.append((300, y))
+for col in range(9):
+    x = 100 + col * 25  
+    dots.append((x, 400))
+for col in range(13):
+    x = 50 + col * 25  
+    dots.append((x, 450))
+
+for col in range(1):
+    x = 50 + col * 25  
+    dots.append((x, 425))
+for col in range(1):
+    x = 350 + col * 25  
+    dots.append((x, 375))
+   
+
+
+# Initialize ghosts
+red_ghost = [125, 75]
+orange_ghost = [275, 350]
+y_vel_red_ghost = 2
+y_vel_orange_ghost = 2
+
+# Score
+score = 0
+
+def dot_collision():
+    global score, dots
+    for dot in dots[:]:
+        distance = math.sqrt((x_face - dot[0])**2 + (y_face - dot[1])**2)
+        if distance < 10:
+            score += 100
+            dots.remove(dot)
+            if score == 5000:
+                return True
+    return False
+
+def ghost_collision(ghost_x, ghost_y):
+    distance = math.sqrt((x_face - ghost_x)**2 + (y_face - ghost_y)**2)
+    return distance < 20
+
+def velocity():
+    global x_vel_face, y_vel_face
+    x_vel_face = 0
+    y_vel_face = 0
+    if keyLeft and x_face > 10:
+        x_vel_face = -2
+    elif keyRight and x_face < SCREEN_WIDTH - 10:
+        x_vel_face = 2
+    if keyUp and y_face > 10:
+        y_vel_face = -2
+    elif keyDown and y_face < SCREEN_HEIGHT - 10:
+        y_vel_face = 2
+
+def move_ghost(ghost, y_velocity, min_y, max_y):
+    ghost[1] += y_velocity
+
+    # Prevent ghost from getting stuck at the boundaries
+    if ghost[1] < min_y:
+        ghost[1] = min_y  # Set to the minimum position
+        y_velocity *= -1  # Reverse direction
+    elif ghost[1] > max_y:
+        ghost[1] = max_y  # Set to the maximum position
+        y_velocity *= -1  # Reverse direction
+
+    return y_velocity
+
+# Main game loop
+running = True
+while running:
+    screen.fill(BLACK)
+
+    #boxes
+    pygame.draw.rect(screen, BLUE, (62.5, 95, 50, 37.5), 3)
+    pygame.draw.rect(screen, BLUE, (150, 95, 100, 37.5), 3)
+    pygame.draw.rect(screen, BLUE, (287.5, 95, 50, 37.5), 3)
+    pygame.draw.rect(screen, BLUE, (150, 162.5, 100, 25), 3)
+    pygame.draw.rect(screen, BLUE, (150, 225, 100, 50), 3)
+    pygame.draw.rect(screen, BLUE, (150, 312.5, 100, 25), 3)
+
+    # guards
+    pygame.draw.rect(screen, BLUE, (62.5, 412.5, 100, 25), 3)
+    pygame.draw.rect(screen, BLUE, (62.5, 362.5, 25, 50), 3)
+    pygame.draw.line(screen, BLACK, (65.5, 411.5), (83.5, 411.5), 6)
+    
+    pygame.draw.rect(screen, BLUE, (112.5, 362.5, 50, 25), 3)
+    pygame.draw.rect(screen, BLUE, (187.5, 412.5, 100, 25), 3)
+
+    pygame.draw.rect(screen, BLUE, (187.5, 362.5, 150, 25), 3)
+    pygame.draw.rect(screen, BLUE, (312.5, 387.5, 25, 50), 3)
+    pygame.draw.line(screen, BLACK, (315.5, 386.5), (333.5, 386.5), 6)
+
+    # Outer lines
+    pygame.draw.line(screen, BLUE, (25, 50), (375, 50), 3)
+    pygame.draw.line(screen, BLUE, (25, 475), (375, 475), 3)
+    pygame.draw.line(screen, BLUE, (25, 50), (25, 175), 3)
+    pygame.draw.line(screen, BLUE, (25, 325), (25, 475), 3)
+    pygame.draw.line(screen, BLUE, (375, 50), (375, 175), 3)
+    pygame.draw.line(screen, BLUE, (375, 325), (375, 475), 3)
+
+    # path and edges
+    pygame.draw.line(screen, BLUE, (25, 225), (100, 225), 3)
+    pygame.draw.line(screen, BLUE, (25, 275), (100, 275), 3)
+    pygame.draw.line(screen, BLUE, (300, 225), (375, 225), 3)
+    pygame.draw.line(screen, BLUE, (300, 275), (375, 275), 3)
+    pygame.draw.line(screen, BLUE, (25, 175), (100, 175), 3)
+    pygame.draw.line(screen, BLUE, (25, 325), (100, 325), 3)
+    pygame.draw.line(screen, BLUE, (300, 175), (375, 175), 3)
+    pygame.draw.line(screen, BLUE, (300, 325), (375, 325), 3)
+
+    pygame.draw.line(screen, BLUE, (100, 175), (100, 225), 3)
+    pygame.draw.line(screen, BLUE, (100, 275), (100, 325), 3)
+    pygame.draw.line(screen, BLUE, (300, 175), (300, 225), 3)
+    pygame.draw.line(screen, BLUE, (300, 275), (300, 325), 3)
+
+
+
+    # Event handling
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                keyLeft = True
+            elif event.key == pygame.K_RIGHT:
+                keyRight = True
+            elif event.key == pygame.K_UP:
+                keyUp = True
+            elif event.key == pygame.K_DOWN:
+                keyDown = True
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                keyLeft = False
+            elif event.key == pygame.K_RIGHT:
+                keyRight = False
+            elif event.key == pygame.K_UP:
+                keyUp = False
+            elif event.key == pygame.K_DOWN:
+                keyDown = False
+
+    # Update Pacman velocity and position
+    velocity()
+    x_face += x_vel_face
+    y_face += y_vel_face
+
+    # Collision with dots
+    if dot_collision():
+        print("You Win!")
+        running = False
+
+    # Collision with ghosts
+    if ghost_collision(*red_ghost) or ghost_collision(*orange_ghost):
+        print("Game Over!")
+        running = False
+
+    # Move ghosts
+    y_vel_red_ghost = move_ghost(red_ghost, y_vel_red_ghost, 75, 350)
+    y_vel_orange_ghost = move_ghost(orange_ghost, y_vel_orange_ghost, 75, 350)
+
+    # Draw Pacman
+    pygame.draw.circle(screen, YELLOW, (x_face, y_face), 10)
+
+    # Draw dots
+    for dot in dots:
+        pygame.draw.circle(screen, WHITE, dot, dot_radius)
+
+    # Draw ghosts
+    pygame.draw.circle(screen, RED, red_ghost, 10)
+    pygame.draw.circle(screen, ORANGE, orange_ghost, 10)
+
+    # Display score
+    font = pygame.font.SysFont(None, 36)
+    score_text = font.render(f"Score: {score}", True, WHITE)
+    screen.blit(score_text, (10, 10))
+
+    # Update display and tick
+    pygame.display.flip()
+    clock.tick(FPS)
+
+pygame.quit()
